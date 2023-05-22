@@ -1,4 +1,4 @@
-# 🖥️ Assembly Language Convertor 📝
+# 🖥️ Assembly Language Convertor 
 
 This program is an Assembly Language Converot implemented in Python. <br>
 It takes the assembly program in a specific input format from the standard input (stdin) and generates a binary code as an output text file(stdout). <br><br>
