@@ -4,7 +4,7 @@ This program is an Assembly Language Converot implemented in Python. <br>
 It takes the assembly program in a specific input format from the standard input (stdin) and generates a binary code as an output text file(stdout). <br><br>
 Here's how the program works:
 
-📥 Input Format: <br>
+📥 Input Format: 
 The input to the assembler is a text file containing the assembly instructions. <br>
 Each line of the text file may be of one of 3 types:
 - Empty line: Ignore these lines
@@ -25,7 +25,7 @@ Each of these entities has the following grammar:
   which declares a 16-bit variable called xyz. <br>
   This variable name can be used in place of mem_addr fields in load and store instructions. All variables must be defined at the very beginning of the assembly program.
 
-🔍 Functionality: <br>
+🔍 Functionality: 
 The program expects input instructions in a specific format from the standard input. Each line should represent an instruction and should follow the following rules:
 - Instructions should be space-separated.
 - The last element of every line should be a newline character '\n'.
@@ -51,8 +51,7 @@ The program expects input instructions in a specific format from the standard in
     - python main.py < input.txt
   - The program will process the input instructions and generate the intermediate code as output.
 
-🔑 Key Features: <br>
-The assembler is capable of:
+🔑 Key Features: The assembler is capable of:
   1. Handling all supported instructions.
   2. Handling labels.
   3. Handling variables.
