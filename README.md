@@ -44,7 +44,7 @@ The program expects input instructions in a specific format from the standard in
   - Label Definition: label_name: (e.g., loop:)
 - The program also supports immediate values, variables, and labels.
 
-⚙️ Usage:<br>
+⚙️ Usage:
   - Prepare a text file containing the input instructions in the specified format.
   - Run the program in the terminal or command prompt.
   - Redirect the input from the text file using the following command:
