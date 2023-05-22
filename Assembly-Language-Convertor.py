@@ -46,7 +46,7 @@ def reg(key):
         return registers[key.lower()]
     else:
         print('Invalid register name')
-        print('Line: ', ' '.join(inp))
+        print('Line number:', i+1)
         exit()
 
 # decimal to binary (returns 8 bit answer and outputs error for immediate value > 8 bits)
@@ -62,6 +62,56 @@ def dectobin(n):
     while(len(final)<8):
         final = '0' + final
     return final
+
+def digitcount(n):
+    count=0
+    while n!=0:
+        n//=10
+        count+=1
+    return count 
+
+def floattobin(n):
+    wh, decimal = str(n).split(".")
+    
+    wh = int(wh)
+    whole = ''
+    while(wh>0):
+        whole = str(wh%2) + whole
+        wh = wh//2
+    whole = whole[1:]
+    
+    exponent = ''
+    w = len(whole)
+    while(w>0):
+        exponent = str(w%2) + exponent
+        w = w//2
+
+    if(len(exponent)>3):
+        print("Exponent exceeds 3 bits")
+        print('Line number:',i+1)
+        exit()
+    
+    exponent = (3-len(exponent))*'0' + exponent
+
+    decimal = int(decimal)/(10**len(decimal))
+
+    mantissa = ''
+    l = [0]
+    while((decimal not in l) and len(mantissa)<(5-len(whole))):
+        l.append(decimal)
+        mantissa += str(int(decimal*2))
+        decimal = (decimal*2)%1
+
+    if(decimal not in l):
+        print('Mantissa exceeds 5 bits')
+        print('Line number:',i+1)
+        exit()
+
+    mantissa = whole + mantissa
+    if(len(mantissa)<5):
+        mantissa = mantissa + (5-len(mantissa))*'0'
+
+    return exponent + mantissa
 
 # return memory address of label
 def find_var(x):
@@ -82,14 +132,14 @@ def assign_labels(instructions):
         while (inp[j]!='' and inp[j][-1]==':'):
             if (inp[j][:len(inp[j])-1] in labels.keys()):
                 print('Label defined more than one time')
-                print('Line: ', ' '.join(inp))
+                print('Line number:', i+1)
                 exit()
             labels[inp[j][:len(inp[j])-1]] = dectobin(i)
             j+=1
         # empty labels case
         if (inp[j]==''):
             print('Empty label defined')
-            print('Line: ', ' '.join(instructions[i]))
+            print('Line number:', i+1)
             exit()
         while(j>0):
             inp.remove(inp[0])
@@ -117,21 +167,21 @@ def check_hlt(instructions):
 def check_immval(st):
     if (len(st)>8):
         print("Immediate value greater than 8 bits")
-        print('Line: ', ' '.join(inp))
+        print('Line number:', i+1)
         exit()
 
 # check for undefined variable
 def check_var(x):
     if(x not in tmp_var):
         print("Variable not defined")
-        print('Line: ', ' '.join(inp))
+        print('Line number:', i+1)
         exit()
 
 # check for undefine label
 def check_label(x):
     if(x not in labels):
         print("Label not defined")
-        print('Line: ', ' '.join(inp))
+        print('Line number:', i+1)
         exit()
 
 # check for illegal use of flags register
@@ -139,30 +189,29 @@ def check_flag(inp,t):
     if(t!='C'):
         if ('FLAGS' in inp):
             print('Illegal use of FLAGS register')
-            print('Line: ', ' '.join(inp))
+            print('Line number:', i+1)
             exit()
     else:
         if (inp[2].upper()=='FLAGS'):
             print("Illegal use of FLAGS register")
-            print('Line: ', ' '.join(inp))
+            print('Line number:', i+1)
             exit()
 
 # syntax error
 def syntax_error():
     print('Invalid syntax')
-    print('Line: ', ' '.join(inp))
+    print('Line number:', i+1)
     exit()
 
-
 # op, register, variable, labels, output 
-opcodes = {"add":'10000', "sub":'10001', "mov":['10010','10011'], "ld":'10100', "st":'10101', "mul":'10110', "div":'10111', "rs":'11000', "ls":'11001', "xor":'11010', "or":'11011', "and":'11100', "not":'11101', "cmp":'11110', "jmp":'11111', "jlt":'01100', "jgt":'01101', "je":'01111', "hlt":'01010'}
+opcodes = {"add":'10000', "addf":'00000',"subf":'00001',"movf":'00010',"sub":'10001', "mov":['10010','10011'], "ld":'10100', "st":'10101', "mul":'10110', "div":'10111', "rs":'11000', "ls":'11001', "xor":'11010', "or":'11011', "and":'11100', "not":'11101', "cmp":'11110', "jmp":'11111', "jlt":'01100', "jgt":'01101', "je":'01111', "hlt":'01010'}
 registers = {"r0" : '000', "r1" : '001', "r2": '010', "r3": '011', "r4": '100', "r5":'101', "r6": '110', "flags": '111'}
 out = []
 tmp_var = []
 variables = {}
 labels = {}
-typea=['add','sub','mul','xor','and','or']
-typeb=['rs','ls','mov']
+typea=['add','addf','subf','sub','mul','xor','and','or']
+typeb=['rs','ls','mov','movf']
 typec=['mov','div','not','cmp']
 typed=['ld','st']
 typee=['jmp','jlt','jgt','je']
@@ -173,7 +222,16 @@ typee=['jmp','jlt','jgt','je']
 n = 0
 instructions = []
 for line in stdin:
+    if(n==256):
+        print('Memory Limit Exceeded')
+        exit()
+    if(['hlt'] in instructions):
+        print("Invalid 'hlt' usage")
+        print('Line number:',n+len(tmp_var))
+        exit()
     if(line=='\n'): continue
+    line = line.replace('\t',' ')
+    line = line.replace('\r',' ')
     # last element of every line from stdin is '\n' and is hence sliced
     inp = line[:len(line)-1].split(' ')
     
@@ -181,10 +239,13 @@ for line in stdin:
         inp.remove(inp[0])
         if(inp==[]):
             print("Invalid variable definition")
-            print('Line: ', line[:len(line)-1])
+            print('Line number:', n+len(tmp_var)+1)
             exit()
         tmp_var.append(inp[0])
         continue
+
+    while('' in inp):
+        inp.remove('')
 
     instructions.append(inp)
     n+=1
@@ -215,8 +276,13 @@ for i in range(len(instructions)):
     if (t=='A'):
         ans = ans + '00' + reg(inp[1]) + reg(inp[2]) + reg(inp[3])
     elif (t=='B'):
-        x = int(inp[2][1:])
-        ans = ans + reg(inp[1]) + dectobin(x)
+        x = (inp[2][1:])
+        if(ans=='00010'):
+            if('.' not in x):
+                x = x + '.0'
+            ans = ans + reg(inp[1]) + floattobin(x)
+        else:
+            ans = ans + reg(inp[1]) + dectobin(int(x))
     elif (t=='C'):
         ans = ans + '00000' + reg(inp[1]) + reg(inp[2])
     elif (t=='D'):
